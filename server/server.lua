@@ -57,17 +57,17 @@ end)
 ESX.RegisterServerCallback('guille_nogarages:getOutVehicles', function(source, cb)
     local _source = source
     local xPlayer = ESX.GetPlayerFromId(_source)
-    local vehicules = {}
+    local veh = {}
 
     MySQL.Async.fetchAll('SELECT * FROM owned_vehicles WHERE owner=@identifier', {
         ['@identifier'] = xPlayer.getIdentifier()
     }, function(data)
         for _, v in pairs(data) do
             local vehicle = json.decode(v.vehicle)
-            table.insert(vehicules, vehicle)
+            table.insert(veh, vehicle)
         end
 
-        cb(vehicules)
+        cb(veh)
     end)
 end)
 
