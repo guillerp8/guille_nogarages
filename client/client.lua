@@ -35,7 +35,7 @@ end)
 function GetPlayers()
     Citizen.Wait(Config.timetospawn * 1000)
     print(GetNumberOfPlayers())
-    ESX.ShowNotification('Do not restart FiveM, we are loading cars.')
+    ESX.ShowNotification('Do not restart FiveM, we are loading your cars.')
     Citizen.Wait(1000)
     CreateVehicles()
 end
@@ -56,20 +56,24 @@ function CreateVehicles()
     local player = GetPlayerPed(-1)
     ESX.TriggerServerCallback('guille_getvehicles', function(vehicles)
         local coords = GetEntityCoords(player)
-        DoScreenFadeOut(1000)
+        --DoScreenFadeOut(1000)
         Citizen.Wait(1000)
         for i = 1, #vehicles, 1 do
             Citizen.Wait(30)
             local position = vehicles[i]["position"]
             local vehicleProps = vehicles[i]["vehProps"]
+            local heading = vehicles[i]["h"]
             local mod = GetDisplayNameFromVehicleModel(vehicleProps["model"])
             SetEntityCoords(player, position.x, position.y, position.z, 1, 1, 1, 0)
             LoadModel(vehicleProps["model"])
-            local vehicle = CreateVehicle(vehicleProps["model"], position.x, position.y, position.z - 0.975, position.heading, true, true)
+            local vehicle = CreateVehicle(vehicleProps["model"], position.x, position.y, position.z - 0.975, heading, true, true)
             Citizen.Wait(1000)
             ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
-	    SetEntityAsMissionEntity(vehicle, true, true)
+	        SetEntityAsMissionEntity(vehicle, true, true)
             SetVehicleOnGroundProperly(vehicle)
+
+
+
             print("^2 ¡Vehicle ^0" .. mod .. "^2 loaded!")
         end
         SetEntityCoords(player, coords.x, coords.y, coords.z, 1, 1, 1, 0)
@@ -95,9 +99,10 @@ Citizen.CreateThread(function()
         if IsPedInAnyVehicle(player) then
             local car = GetVehiclePedIsUsing(player)
             local properties = ESX.Game.GetVehicleProperties(car)
+            local headings = GetEntityHeading(car)
             local plate = properties["plate"]
             print("^2 Saved vehicle ^0" .. plate .. "")
-            TriggerServerEvent("guille_storevehicle", plate, properties)
+            TriggerServerEvent("guille_storevehicle", plate, properties, headings)
             SetEntityAsMissionEntity(car, true, true)
         end
         
@@ -143,7 +148,7 @@ function OpenMenuGarage(PointType)
 
 
     ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'droga', {
-        title    = ('Menú de drogas'),
+        title    = ('Impound'),
         align    = 'top-right',
         elements = {
             {label = ('Impounded car'), value = 'return_vehicle'},
@@ -177,7 +182,7 @@ function ReturnVehicleMenu()
         end
 
         ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'return_vehicle', {
-            title = ('Recuperar vehículos'),
+            title = ('Recover vehicles'),
             align = 'top-left',
             elements = elements
         }, function(data, menu)
